@@ -1,0 +1,96 @@
+# libraries we want to import
+!pip install nltk scikit-learn pandas
+
+
+#importing the imports
+import nltk
+import pandas as pd
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk import pos_tag
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
+#inside the language we have stopwords , punctuations we are downloading all of them here
+nltk.download("punkt")
+nltk.download("punkt_tab")
+nltk.download("stopwords")
+nltk.download('averaged_perceptron_tagger')
+nltk.download('averaged_perceptron_tagger_eng')
+nltk.download("wordnet")
+
+
+#this is the document which we are using to perform the experiment
+documents = [
+    "The fox runs on the box.",
+    "A quick brown fox jumps over the lazy dog.",
+    "Natural language processing is used in AI applications.",
+    "Students are learning text preprocessing techniques in Python."
+]
+
+#tokenization here we are breaking the sentence into the single words
+print("----------------------------********TOKENIZATION********-----------------")
+tokens = [word_tokenize(doc.lower()) for doc in documents]
+print("Tokenized Output:")
+print(tokens)
+
+#here we are trying to find the part of speech
+print(" ")
+print("-------------*******PART OF SPEECH TAGGING (POS)**************----------")
+
+for doc_tokens in tokens:
+  print(pos_tag(doc_tokens))
+
+print(" ")
+
+#in the language we are having words like am is are the which dont provide any meaning in nlp so we are treating them like stopwords and removing it
+print("-------------*******STOP WORD REMOVAL **************----------")
+print(" ")
+stop_words = set(stopwords.words('english'))
+cleaned_tokens = []
+for doc in tokens:
+  filtered = [word for word in doc if word.isalpha() and word not in stop_words]
+  cleaned_tokens.append(filtered)
+  print(cleaned_tokens)
+  print(" ")
+
+#is stemming we are chopping off ends of words (e.g., "-ing", "-ed", "-s")
+print("-------------******* Stemming **************----------")
+stemmed_output = []
+stemmer = PorterStemmer ()
+for doc in cleaned_tokens:
+  stemmed = [stemmer.stem(word) for word in doc]
+  stemmed_output.append(stemmed)
+print(f"The stemmed output is {stemmed_output}")
+print(" ")
+
+# in stemming we are sticking to the root word(It maps variations like "running," "runs," and "ran" back to the root "run," ensuring the output is a valid dictionary word.)
+print("-------------******* lemmitization **************----------")
+print(" ")
+lemmatizer = WordNetLemmatizer()
+lemmatized_output = []
+for doc in cleaned_tokens:
+  lemmatized = [lemmatizer.lemmatize(word) for word in doc]
+  lemmatized_output.append(lemmatized)
+  print("\nLemmatized Output:")
+  print(lemmatized_output)
+
+#TF-IDF (Term Frequency-Inverse Document Frequency) is a foundational NLP technique that converts text into numerical vectors by weighing words based on their importance.
+print("-------------******* TF calculation **************----------")
+print("\nTerm Frequency (TF):")
+for i, doc in enumerate(cleaned_tokens):
+  tf = {}
+  total_words = len(doc)
+  for word in doc:
+    tf[word] = tf.get(word, 0) + 1
+  for word in tf:
+    tf[word] /= total_words
+print(f"Document {i+1}: {tf}")
+
+print("-------------******* TF IDF using Sklearn **************----------")
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(documents)
+feature_names = vectorizer.get_feature_names_out()
+tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), columns=feature_names)
+print("\nTF-IDF Matrix:")
+print(tfidf_df)
